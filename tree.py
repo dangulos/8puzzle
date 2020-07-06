@@ -5,10 +5,13 @@ import time
 
 class Tree:
     class Node:
-        def __init__(self, state, parent=None):
+        def __init__(self, state, parent=None, heur="M"):
             self.state = state
             self.parent = parent
-            self.weight = Tree.Node.calcManhattan(self.state)
+            if heur == "T":
+                self.weight = Tree.Node.calcTiles(self.state)
+            else:
+                self.weight = Tree.Node.calcManhattan(self.state)
             self.edges = [None, None, None, None]
             if not(parent is None):
                 self.level = parent.level + 1
@@ -37,6 +40,16 @@ class Tree:
                     suma = suma + abs(i - s[0][0]) + abs(j - s[1][0])
             #print(suma)
             return suma
+        
+        def calcTiles(state):
+            goal = np.array([[1,2,3],[4,5,6],[7,8,0]])
+            suma = 0
+            for i in range(0,3):
+                for j in range(0,3):
+                    if(goal[i][j]!=state[i][j]): suma += 1
+            #print(suma)
+            return suma
+
 
     def __init__(self, initState, maxNodes=100000):
         self.initState = initState
@@ -46,21 +59,21 @@ class Tree:
         self.i = 0
         self.maxNodes = maxNodes
 
-    def solveAStar(self):
+    def solveAStar(self, heur="M"):
         self.goalNode = None
         visitedStates = set()
         nodes = PriorityQueue(100000)
         nodes.put(self.initNode)
         t1 = time.process_time()
         #nodes = [self.initNode]
-        visitedStates.add(np.array_str(self.initNode.state.flatten()))
+
         i = 1
         k = 0
-        while(k <= self.maxNodes):
+        while(k <= self.maxNodes and not nodes.empty()):
             k += 1
             currNode = nodes.get()
             #currNode = nodes.pop(0)
-            
+
             z = np.where(currNode.state == 0)
             zero = (z[0][0],z[1][0])
 
@@ -72,7 +85,7 @@ class Tree:
                 #print(newState)
                 if not(np.array_str(newState.flatten()) in visitedStates):
                     visitedStates.add(np.array_str(newState.flatten()))
-                    newNode = Tree.Node(state=np.copy(newState),parent=currNode)
+                    newNode = Tree.Node(state=np.copy(newState),parent=currNode,heur=heur)
                     currNode.edges[0] = newNode
                     nodes.put(newNode)
                     #nodes.append(newNode)
@@ -89,7 +102,7 @@ class Tree:
                 #print(newState)
                 if not(np.array_str(newState.flatten()) in visitedStates):
                     visitedStates.add(np.array_str(newState.flatten()))
-                    newNode = Tree.Node(state=np.copy(newState),parent=currNode)
+                    newNode = Tree.Node(state=np.copy(newState),parent=currNode,heur=heur)
                     currNode.edges[1] = newNode
                     nodes.put(newNode)
                     #nodes.append(newNode)
@@ -106,7 +119,7 @@ class Tree:
                 #print(newState)
                 if not(np.array_str(newState.flatten()) in visitedStates):
                     visitedStates.add(np.array_str(newState.flatten()))
-                    newNode = Tree.Node(state=np.copy(newState),parent=currNode)
+                    newNode = Tree.Node(state=np.copy(newState),parent=currNode,heur=heur)
                     currNode.edges[2] = newNode
                     nodes.put(newNode)
                     #nodes.append(newNode)
@@ -123,7 +136,7 @@ class Tree:
                 #print(newState)
                 if not(np.array_str(newState.flatten()) in visitedStates):
                     visitedStates.add(np.array_str(newState.flatten()))
-                    newNode = Tree.Node(state= np.copy(newState),parent=currNode)
+                    newNode = Tree.Node(state= np.copy(newState),parent=currNode,heur=heur)
                     currNode.edges[3] = newNode
                     nodes.put(newNode)
                     #nodes.append(newNode)
@@ -142,7 +155,7 @@ class Tree:
         visitedStates.add(np.array_str(self.initNode.state.flatten()))
         i = 1
         k = 0
-        while(k <= self.maxNodes):
+        while(k <= self.maxNodes and len(nodes) > 0):
             k += 1
             currNode = nodes.pop(0)
             #print(currNode.level)
